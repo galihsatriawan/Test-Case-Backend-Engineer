@@ -15,6 +15,7 @@ type Service interface {
 	FindUserByUsername(email string) (User, error)
 	RegisterUser(input RegisterInput) (User, error)
 	Login(input LoginInput) (User, error)
+	Update(currentUser User, input UpdateInput) (User, error)
 }
 
 func NewService(r Repository) *service {
@@ -34,6 +35,19 @@ func (s *service) FindUserByUsername(username string) (User, error) {
 		return user, err
 	}
 	return user, nil
+}
+func (s *service) Update(currentUser User, input UpdateInput) (User, error) {
+	if input.Password != "" {
+		currentUser.Password = input.Password
+	}
+	if input.NamaLengkap != "" {
+		currentUser.NamaLengkap = input.NamaLengkap
+	}
+	updatedUser, err := s.repository.Save(currentUser)
+	if err != nil {
+		return updatedUser, err
+	}
+	return updatedUser, nil
 }
 func (s *service) Login(input LoginInput) (User, error) {
 	username := input.Username
