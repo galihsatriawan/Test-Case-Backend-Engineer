@@ -41,6 +41,7 @@ func main() {
 	api.POST("/users", userHandler.Register)
 	api.POST("/login", userHandler.Login)
 	api.PUT("/user", authMiddleware(userService, authService), userHandler.Update)
+	api.DELETE("/user", authMiddleware(userService, authService), userHandler.DeleteAccount)
 	router.Run()
 }
 func authMiddleware(userService user.Service, authService auth.Service) gin.HandlerFunc {

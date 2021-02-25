@@ -39,6 +39,18 @@ func (h *userHandler) Update(c *gin.Context) {
 	response := helper.APIResponse("User is successfully Updated", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 }
+func (h *userHandler) DeleteAccount(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(user.User)
+	isSuccess, err := h.userService.Delete(currentUser.ID)
+	if err != nil {
+		response := helper.APIResponse("Delete user failed", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	data := gin.H{"is_deleted": isSuccess}
+	response := helper.APIResponse("User is successfully deleted", http.StatusOK, "success", data)
+	c.JSON(http.StatusOK, response)
+}
 func (h *userHandler) Register(c *gin.Context) {
 	var input user.RegisterInput
 	err := c.ShouldBindJSON(&input)

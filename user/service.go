@@ -16,6 +16,7 @@ type Service interface {
 	RegisterUser(input RegisterInput) (User, error)
 	Login(input LoginInput) (User, error)
 	Update(currentUser User, input UpdateInput) (User, error)
+	Delete(ID int) (bool, error)
 }
 
 func NewService(r Repository) *service {
@@ -35,6 +36,18 @@ func (s *service) FindUserByUsername(username string) (User, error) {
 		return user, err
 	}
 	return user, nil
+}
+func (s *service) Delete(ID int) (bool, error) {
+	user, err := s.FindUserByID(ID)
+	if err != nil {
+		return false, err
+	}
+
+	isSuccess, err := s.repository.Delete(user)
+	if err != nil {
+		return false, err
+	}
+	return isSuccess, nil
 }
 func (s *service) Update(currentUser User, input UpdateInput) (User, error) {
 	if input.Password != "" {
