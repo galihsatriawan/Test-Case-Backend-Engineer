@@ -10,6 +10,8 @@ type Repository interface {
 	FindByID(ID int) (User, error)
 	FindByUsername(username string) (User, error)
 	Create(user User) (User, error)
+	Save(user User) (User, error)
+	Delete(user User) (bool, error)
 }
 
 func NewRepository(db *gorm.DB) *repository {
@@ -41,4 +43,21 @@ func (r *repository) Create(user User) (User, error) {
 		return user, err
 	}
 	return user, nil
+}
+
+func (r *repository) Save(user User) (User, error) {
+	err := r.db.Save(&user).Error
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+
+}
+
+func (r *repository) Delete(user User) (bool, error) {
+	err := r.db.Where("id = ?", user.ID).Delete(&user).Error
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

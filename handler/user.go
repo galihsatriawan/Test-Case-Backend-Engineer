@@ -17,7 +17,40 @@ type userHandler struct {
 func NewHandler(userService user.Service, authService auth.Service) *userHandler {
 	return &userHandler{userService: userService, authService: authService}
 }
+func (h *userHandler) Update(c *gin.Context) {
+	var input user.UpdateInput
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessages := gin.H{"errors": errors}
+		response := helper.APIResponse("Register user failed", http.StatusUnprocessableEntity, "error", errorMessages)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	currentUser := c.MustGet("currentUser").(user.User)
+	updatedUser, err := h.userService.Update(currentUser, input)
 
+	if err != nil {
+		response := helper.APIResponse("Update was failed", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	formatter := user.FormatUser(updatedUser, "")
+	response := helper.APIResponse("User is successfully Updated", http.StatusOK, "success", formatter)
+	c.JSON(http.StatusOK, response)
+}
+func (h *userHandler) DeleteAccount(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(user.User)
+	isSuccess, err := h.userService.Delete(currentUser.ID)
+	if err != nil {
+		response := helper.APIResponse("Delete user failed", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	data := gin.H{"is_deleted": isSuccess}
+	response := helper.APIResponse("User is successfully deleted", http.StatusOK, "success", data)
+	c.JSON(http.StatusOK, response)
+}
 func (h *userHandler) Register(c *gin.Context) {
 	var input user.RegisterInput
 	err := c.ShouldBindJSON(&input)
