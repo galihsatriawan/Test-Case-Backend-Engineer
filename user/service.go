@@ -16,13 +16,27 @@ type Service interface {
 	RegisterUser(input RegisterInput) (User, error)
 	Login(input LoginInput) (User, error)
 	Update(currentUser User, input UpdateInput) (User, error)
+	SaveFoto(ID int, imagePath string) (User, error)
 	Delete(ID int) (bool, error)
 }
 
 func NewService(r Repository) *service {
 	return &service{r}
 }
+func (s *service) SaveFoto(ID int, imagePath string) (User, error) {
+	// cari user by id, ubah path avatar, save user
+	user, err := s.repository.FindByID(ID)
+	if err != nil {
+		return user, err
+	}
+	user.Foto = imagePath
 
+	updatedUser, err := s.repository.Save(user)
+	if err != nil {
+		return updatedUser, err
+	}
+	return updatedUser, nil
+}
 func (s *service) FindUserByID(ID int) (User, error) {
 	user, err := s.repository.FindByID(ID)
 	if err != nil {

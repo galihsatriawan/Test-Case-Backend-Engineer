@@ -36,10 +36,12 @@ func main() {
 
 	userHandler := handler.NewHandler(userService, authService)
 	router := gin.Default()
-
+	router.Static("/images", "./images")
 	api := router.Group("api/v0")
 	api.POST("/users", userHandler.Register)
+	api.GET("/users/:username", authMiddleware(userService, authService), userHandler.Profile)
 	api.POST("/login", userHandler.Login)
+	api.POST("/foto", authMiddleware(userService, authService), userHandler.UploadFoto)
 	api.PUT("/user", authMiddleware(userService, authService), userHandler.Update)
 	api.DELETE("/user", authMiddleware(userService, authService), userHandler.DeleteAccount)
 	router.Run()

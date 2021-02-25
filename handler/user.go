@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"test-case-backend/auth"
 	"test-case-backend/helper"
 	"test-case-backend/user"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,6 +18,28 @@ type userHandler struct {
 
 func NewHandler(userService user.Service, authService auth.Service) *userHandler {
 	return &userHandler{userService: userService, authService: authService}
+}
+func (h *userHandler) Profile(c *gin.Context) {
+	var input user.ProfileInput
+	err := c.ShouldBindUri(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessages := gin.H{"errors": errors}
+		response := helper.APIResponse("Get Profile user failed", http.StatusUnprocessableEntity, "error", errorMessages)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	detailUser, err := h.userService.FindUserByUsername(input.Username)
+
+	if err != nil {
+		response := helper.APIResponse("Get Profile user failed", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	profileUser := user.FormatProfile(detailUser)
+	response := helper.APIResponse("Get User is successfully", http.StatusOK, "success", profileUser)
+	c.JSON(http.StatusOK, response)
 }
 func (h *userHandler) Update(c *gin.Context) {
 	var input user.UpdateInput
@@ -109,4 +133,46 @@ func (h *userHandler) Login(c *gin.Context) {
 	response := helper.APIResponse("Login successfully", http.StatusAccepted, "success", formatter)
 
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *userHandler) UploadFoto(c *gin.Context) {
+	file, err := c.FormFile("foto")
+	if err != nil {
+		data := gin.H{"is_uploaded": false, "errors": err.Error()}
+		response := helper.APIResponse("Upload file was failed", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+	userID := currentUser.ID
+
+	imagePath := fmt.Sprintf("images/%d%d-%s", userID, time.Now().Unix(), file.Filename)
+
+	err = c.SaveUploadedFile(file, imagePath)
+	if err != nil {
+		data := gin.H{
+			"is_uploaded": false,
+			"errors":      err.Error(),
+		}
+		response := helper.APIResponse("Upload file was failed", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	// Save ke db
+	_, err = h.userService.SaveFoto(userID, imagePath)
+	if err != nil {
+		data := gin.H{"is_uploaded": false, "errors": err.Error()}
+		response := helper.APIResponse("Upload file was failed", http.StatusBadRequest, "error", data)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	data := gin.H{
+		"is_uploaded": true,
+		"foto":        imagePath,
+	}
+	response := helper.APIResponse("Upload file is successfully", http.StatusOK, "success", data)
+	c.JSON(http.StatusOK, response)
+
 }
