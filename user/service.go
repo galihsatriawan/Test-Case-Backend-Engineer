@@ -14,6 +14,7 @@ type Service interface {
 	FindUserByID(ID int) (User, error)
 	FindUserByUsername(email string) (User, error)
 	RegisterUser(input RegisterInput) (User, error)
+	Login(input LoginInput) (User, error)
 }
 
 func NewService(r Repository) *service {
@@ -29,6 +30,20 @@ func (s *service) FindUserByID(ID int) (User, error) {
 }
 func (s *service) FindUserByUsername(username string) (User, error) {
 	user, err := s.repository.FindByUsername(username)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+func (s *service) Login(input LoginInput) (User, error) {
+	username := input.Username
+	password := input.Password
+
+	user, err := s.repository.FindByUsername(username)
+	if err != nil {
+		return user, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return user, err
 	}
