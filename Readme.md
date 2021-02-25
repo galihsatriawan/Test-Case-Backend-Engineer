@@ -15,4 +15,11 @@
    foto varchar(255) NOT NULL
  )
 
- 
+ ## ENVIRONMENT File
+- Create backend.env file
+- Values :
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USERNAME=
+DB_PASSWORD=
