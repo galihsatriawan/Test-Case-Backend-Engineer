@@ -28,6 +28,14 @@ func main() {
 
 	userService := user.NewService(userRepository)
 
-	fmt.Println(userService.FindUserByID(1))
-	fmt.Println(userService.FindUserByUsername("galih"))
+	userInput := user.RegisterInput{}
+	userInput.Username = "galihsatriawan"
+	userInput.Password = "OK"
+	userInput.NamaLengkap = "galihsatriawan"
+	newUser, err := userService.RegisterUser(userInput)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Success create user")
+	fmt.Println(newUser)
 }

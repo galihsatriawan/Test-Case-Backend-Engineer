@@ -9,6 +9,7 @@ type repository struct {
 type Repository interface {
 	FindByID(ID int) (User, error)
 	FindByUsername(username string) (User, error)
+	Create(user User) (User, error)
 }
 
 func NewRepository(db *gorm.DB) *repository {
@@ -28,6 +29,14 @@ func (repo *repository) FindByUsername(username string) (User, error) {
 func (r *repository) FindByID(ID int) (User, error) {
 	var user User
 	err := r.db.Where("ID = ?", ID).Find(&user).Error
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (r *repository) Create(user User) (User, error) {
+	err := r.db.Create(&user).Error
 	if err != nil {
 		return user, err
 	}
