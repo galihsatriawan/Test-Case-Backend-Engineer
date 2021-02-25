@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"test-case-backend/connection"
+	"test-case-backend/handler"
 	"test-case-backend/helper"
 	"test-case-backend/user"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
@@ -28,6 +29,11 @@ func main() {
 
 	userService := user.NewService(userRepository)
 
-	fmt.Println(userService.FindUserByID(1))
-	fmt.Println(userService.FindUserByUsername("galih"))
+	userHandler := handler.NewHandler(userService)
+	router := gin.Default()
+
+	api := router.Group("api/v0")
+	api.POST("/users", userHandler.Register)
+
+	router.Run()
 }
