@@ -19,3 +19,17 @@ func FormatUser(user User, token string) UserFormatter {
 	userFormat.Token = token
 	return userFormat
 }
+
+type ProfileFormatter struct {
+	Username    string `json:"username"`
+	NamaLengkap string `json:"nama_lengkap"`
+	Foto        string `json:"foto"`
+}
+
+func FormatProfile(user User) ProfileFormatter {
+	profileFormat := ProfileFormatter{}
+	profileFormat.Username = user.Username
+	profileFormat.NamaLengkap = user.NamaLengkap
+	profileFormat.Foto = user.Foto
+	return profileFormat
+}

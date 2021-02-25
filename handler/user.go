@@ -19,6 +19,28 @@ type userHandler struct {
 func NewHandler(userService user.Service, authService auth.Service) *userHandler {
 	return &userHandler{userService: userService, authService: authService}
 }
+func (h *userHandler) Profile(c *gin.Context) {
+	var input user.ProfileInput
+	err := c.ShouldBindUri(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessages := gin.H{"errors": errors}
+		response := helper.APIResponse("Get Profile user failed", http.StatusUnprocessableEntity, "error", errorMessages)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	detailUser, err := h.userService.FindUserByUsername(input.Username)
+
+	if err != nil {
+		response := helper.APIResponse("Get Profile user failed", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	profileUser := user.FormatProfile(detailUser)
+	response := helper.APIResponse("Get User is successfully", http.StatusOK, "success", profileUser)
+	c.JSON(http.StatusOK, response)
+}
 func (h *userHandler) Update(c *gin.Context) {
 	var input user.UpdateInput
 	err := c.ShouldBindJSON(&input)
