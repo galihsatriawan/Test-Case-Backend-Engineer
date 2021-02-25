@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"test-case-backend/auth"
 	"test-case-backend/helper"
 	"test-case-backend/user"
 
@@ -10,10 +11,11 @@ import (
 
 type userHandler struct {
 	userService user.Service
+	authService auth.Service
 }
 
-func NewHandler(userService user.Service) *userHandler {
-	return &userHandler{userService: userService}
+func NewHandler(userService user.Service, authService auth.Service) *userHandler {
+	return &userHandler{userService: userService, authService: authService}
 }
 
 func (h *userHandler) Register(c *gin.Context) {
@@ -33,8 +35,45 @@ func (h *userHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
+	token, err := h.authService.GenerateToken(newUser.ID)
 
-	formatter := user.FormatUser(newUser)
+	if err != nil {
+		response := helper.APIResponse("Register user success but failed to create token", http.StatusBadRequest, "error", err.Error())
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	formatter := user.FormatUser(newUser, token)
 	response := helper.APIResponse("User is successfully registered", http.StatusOK, "success", formatter)
+	c.JSON(http.StatusOK, response)
+}
+func (h *userHandler) Login(c *gin.Context) {
+	var inputLogin user.LoginInput
+	err := c.ShouldBindJSON(&inputLogin)
+	// Check error validation
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessages := gin.H{"errors": errors}
+		response := helper.APIResponse("Login failed", http.StatusUnprocessableEntity, "error", errorMessages)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+	// Check user
+
+	loggedInUser, err := h.userService.Login(inputLogin)
+	if err != nil {
+		errorMessages := gin.H{"errors": err.Error()}
+		response := helper.APIResponse("Login Failed", http.StatusUnauthorized, "error", errorMessages)
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+	token, err := h.authService.GenerateToken(loggedInUser.ID)
+	if err != nil {
+		response := helper.APIResponse("Login failed", http.StatusUnauthorized, "error", err.Error())
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+	formatter := user.FormatUser(loggedInUser, token)
+	response := helper.APIResponse("Login successfully", http.StatusAccepted, "success", formatter)
+
 	c.JSON(http.StatusOK, response)
 }
