@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"test-case-backend/connection"
 	"test-case-backend/helper"
+	"test-case-backend/user"
 
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
@@ -22,4 +24,10 @@ func init() {
 }
 func main() {
 
+	userRepository := user.NewRepository(db)
+
+	userService := user.NewService(userRepository)
+
+	fmt.Println(userService.FindUserByID(1))
+	fmt.Println(userService.FindUserByUsername("galih"))
 }

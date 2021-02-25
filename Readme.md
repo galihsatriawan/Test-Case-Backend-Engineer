@@ -7,7 +7,7 @@
 ##  SQL DB 
  CREATE DATABASE test_backend;
  USE test_backend;
- CREATE TABLE user (
+ CREATE TABLE users (
    id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
    username varchar(30) NOT NULL,
    password varchar(255) NOT NULL,
