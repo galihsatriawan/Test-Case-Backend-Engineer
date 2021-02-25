@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"test-case-backend/auth"
 	"test-case-backend/connection"
 	"test-case-backend/handler"
 	"test-case-backend/helper"
@@ -28,7 +30,12 @@ func main() {
 	userRepository := user.NewRepository(db)
 
 	userService := user.NewService(userRepository)
-
+	authService := auth.NewService()
+	token, err := authService.GenerateToken(1)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(token)
 	userHandler := handler.NewHandler(userService)
 	router := gin.Default()
 

@@ -18,6 +18,7 @@
  ## ENVIRONMENT File
 - Create backend.env file
 - Values :
+APP_PORT=
 DB_HOST=
 DB_PORT=
 DB_NAME=
